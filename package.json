@@ -1,0 +1,22 @@
+{
+	"name": "filedx",
+	"version": "0.0.1",
+	"description": "",
+	"license": "MIT",
+	"author": "",
+	"type": "module",
+	"main": "main.js",
+	"bin": {
+		"filedx": "./main.js"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"check": "npx --no-install @biomejs/biome check --write"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.5"
+	},
+	"dependencies": {
+		"commander": "15.0.0"
+	}
+}
