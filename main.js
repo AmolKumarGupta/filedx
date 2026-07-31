@@ -1,3 +1,38 @@
 #!/usr/bin/env node
 
-console.log("test");
+import { program } from "commander";
+
+program
+	.name("filedx")
+	.description("Cli tool to monitor source code and large asset file integrity")
+	.version("0.0.1");
+
+program
+	.command("init")
+	.description("setup filedx")
+	.action((_options) => {
+		console.log("init called");
+	});
+
+program
+	.command("scan")
+	.description("scan the files and build db")
+	.action((_options) => {
+		console.log("scan called");
+	});
+
+program
+	.command("verify")
+	.description("verify the files integrity")
+	.action((_options) => {
+		console.log("verify called");
+	});
+
+program
+	.command("diff")
+	.description("display diff")
+	.action((_options) => {
+		console.log("diff called");
+	});
+
+program.parse();
