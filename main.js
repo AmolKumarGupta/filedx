@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
+import { serializeIndex } from "./src/lib/database.js";
 
 program
 	.name("filedx")
@@ -33,6 +34,30 @@ program
 	.description("display diff")
 	.action((_options) => {
 		console.log("diff called");
+	});
+
+program
+	.command("test")
+	.description("test")
+	.action((_options) => {
+		serializeIndex([
+			{
+				path: "src/a.js",
+				hash: Buffer.alloc(32),
+				size: 100,
+				modifiedAt: 0,
+				permissions: 0o644,
+				flags: 0,
+			},
+			{
+				path: "README.md",
+				hash: Buffer.alloc(32),
+				size: 50,
+				modifiedAt: 0,
+				permissions: 0o644,
+				flags: 0,
+			},
+		]);
 	});
 
 program.parse();
