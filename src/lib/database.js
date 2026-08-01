@@ -4,14 +4,18 @@ export const MAGIC_PREFIX = "FILEDX01";
 export const VERSION = 1;
 
 /**
- * @param {Array<{
+ * @typedef {{
  * 	path: string,
  * 	hash: Buffer,
  * 	size: number,
  * 	modifiedAt: number,
  * 	permissions?: number,
  * 	flags?: number
- * }>} files
+ * }} File
+ */
+
+/**
+ * @param {File[]} files
  *
  * @param {{createdAt?: number, updatedAt?: number}} options
  */
@@ -112,4 +116,85 @@ export function serializeIndex(files, options = {}) {
 	}
 
 	return buffer;
+}
+
+/**
+ * @param {Buffer} buffer
+ *
+ * @return {{
+ * 	header: {version: number, flags: number, createdAt: number, updatedAt: number, fileCount: number},
+ * 	files: File[]
+ * }}
+ */
+export function deserializeIndex(buffer) {
+	const magic = buffer.toString("ascii", 0, 8);
+	if (magic !== MAGIC_PREFIX) {
+		throw new Error("Invalid file format Or Corrupted file");
+	}
+
+	const version = buffer.readUint16BE(8);
+	if (version !== VERSION) {
+		throw new Error("Unsupported version");
+	}
+
+	const flags = buffer.readUint16BE(10);
+	const fileCount = buffer.readUint32BE(12);
+	const createdAt = Number(buffer.readBigUint64BE(16));
+	const updatedAt = Number(buffer.readBigUint64BE(24));
+
+	// const pathPoolOffset = Number(buffer.readBigUint64BE(40));
+	const hashPoolOffset = Number(buffer.readBigUint64BE(48));
+
+	if (hashPoolOffset > buffer.length) {
+		throw new Error("Truncated file");
+	}
+
+	/** @type {File[]} */
+	const files = [];
+
+	for (let i = 0; i < fileCount; i++) {
+		const entryOffset = HEADER_SIZE + i * FILE_ENTRY_SIZE;
+
+		const pathOffset = Number(buffer.readBigUint64BE(entryOffset)); // 0..7 Path Offset
+		const pathLen = buffer.readUint32BE(entryOffset + 8); // 8..11 Path Length
+
+		const hashOffset = Number(buffer.readBigUint64BE(entryOffset + 12)); // 12..19 Hash Offset
+		const hashLen = buffer.readUint16BE(entryOffset + 20); // 20..21 Hash Length
+
+		const fileSize = Number(buffer.readBigUint64BE(entryOffset + 22)); // 22..29 File Size
+		const modifiedAt = Number(buffer.readBigUint64BE(entryOffset + 30)); // 30..37 Modified At
+		const permissions = buffer.readUInt32BE(entryOffset + 38); // 38..41 Permissions
+		const flags = buffer.readUInt32BE(entryOffset + 42); // 42..45 Flags
+
+		if (pathOffset + pathLen > buffer.length) {
+			throw new Error(`Truncated file at ${pathOffset + pathLen}`);
+		}
+
+		if (hashOffset + hashLen > buffer.length) {
+			throw new Error(`Truncated file at ${hashOffset + hashLen}`);
+		}
+
+		const path = buffer.toString("utf-8", pathOffset, pathOffset + pathLen);
+		const hash = buffer.subarray(hashOffset, hashOffset + hashLen);
+
+		files.push({
+			path,
+			hash,
+			size: fileSize,
+			modifiedAt,
+			permissions,
+			flags,
+		});
+	}
+
+	return {
+		header: {
+			version,
+			flags,
+			createdAt,
+			updatedAt,
+			fileCount,
+		},
+		files,
+	};
 }
