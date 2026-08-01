@@ -142,7 +142,6 @@ export function deserializeIndex(buffer) {
 	const createdAt = Number(buffer.readBigUint64BE(16));
 	const updatedAt = Number(buffer.readBigUint64BE(24));
 
-	// const pathPoolOffset = Number(buffer.readBigUint64BE(40));
 	const hashPoolOffset = Number(buffer.readBigUint64BE(48));
 
 	if (hashPoolOffset > buffer.length) {

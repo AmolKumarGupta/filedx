@@ -10,7 +10,7 @@
 		"filedx": "./main.js"
 	},
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "node --test",
 		"check": "node_modules/.bin/biome check --write"
 	},
 	"devDependencies": {
