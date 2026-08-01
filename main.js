@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
-import { serializeIndex } from "./src/lib/database.js";
+import { scanDir } from "./src/lib/scanner.js";
 
 program
 	.name("filedx")
@@ -39,25 +39,9 @@ program
 program
 	.command("test")
 	.description("test")
-	.action((_options) => {
-		serializeIndex([
-			{
-				path: "src/a.js",
-				hash: Buffer.alloc(32),
-				size: 100,
-				modifiedAt: 0,
-				permissions: 0o644,
-				flags: 0,
-			},
-			{
-				path: "README.md",
-				hash: Buffer.alloc(32),
-				size: 50,
-				modifiedAt: 0,
-				permissions: 0o644,
-				flags: 0,
-			},
-		]);
+	.action(async (_options) => {
+		const path = process.cwd();
+		await scanDir(path);
 	});
 
-program.parse();
+program.parseAsync();
