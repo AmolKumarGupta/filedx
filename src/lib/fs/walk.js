@@ -74,12 +74,12 @@ export async function validateAndMerge(dirents, options = {}) {
 }
 
 /**
- * @param {string} path
+ * @param {string} route
  * @param {string[]} ruleList
  *
  * @returns {boolean}
  */
-function shouldIgnore(path, ruleList) {
+function shouldIgnore(route, ruleList) {
     let ignored = false;
 
     for (let rule of ruleList) {
@@ -115,7 +115,15 @@ function shouldIgnore(path, ruleList) {
             throw new Error(`found unsafe ignore pattern: ${origRule}`);
         }
 
-        if (regex.test(path)) {
+        if (rule.indexOf("/") < 0) {
+            const baseRoute = path.basename(route)
+            if (regex.test(baseRoute)) {
+                ignored = !isNegation;
+            }
+            continue
+        }
+
+        if (regex.test(route)) {
             ignored = !isNegation;
         }
     }
