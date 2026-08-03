@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
-import { scanDirectory } from "./src/lib/scanner.js";
 
 program
 	.name("filedx")
@@ -40,8 +39,9 @@ program
 	.command("test")
 	.description("test")
 	.action(async (_options) => {
-		const path = process.cwd();
-		await scanDirectory(path);
+		// const path = process.cwd();
+		// const scannedFiles = await scanDirectory(path);
+		// const data = await deserializeIndex(dbBuffer)
 	});
 
 program.parseAsync();
