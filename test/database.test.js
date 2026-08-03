@@ -3,7 +3,6 @@ import { describe, test } from "node:test";
 
 import {
 	deserializeIndex,
-	FILE_ENTRY_SIZE,
 	HEADER_SIZE,
 	MAGIC_PREFIX,
 	serializeIndex,
@@ -119,7 +118,10 @@ describe("serializeIndex", () => {
 	test("supports large timestamps beyond 2^53 without precision loss", () => {
 		const bigTime = 9_007_199_254_740_992; // 2^53, exceeds safe integer for some ops
 		const file = makeFile({ modifiedAt: bigTime });
-		const buffer = serializeIndex([file], { createdAt: bigTime, updatedAt: bigTime });
+		const buffer = serializeIndex([file], {
+			createdAt: bigTime,
+			updatedAt: bigTime,
+		});
 
 		assert.equal(Number(buffer.readBigUint64BE(16)), bigTime);
 		assert.equal(Number(buffer.readBigUint64BE(24)), bigTime);
@@ -132,7 +134,10 @@ describe("deserializeIndex", () => {
 		const buffer = serializeIndex([]);
 		buffer.write("BOGUS01", 0, 8, "ascii");
 
-		assert.throws(() => deserializeIndex(buffer), /Invalid file format Or Corrupted file/);
+		assert.throws(
+			() => deserializeIndex(buffer),
+			/Invalid file format Or Corrupted file/,
+		);
 	});
 
 	test("rejects unsupported version", () => {
@@ -144,7 +149,10 @@ describe("deserializeIndex", () => {
 
 	test("rejects truncated buffer", () => {
 		const buffer = serializeIndex([]);
-		assert.throws(() => deserializeIndex(buffer.subarray(0, 10)), /Invalid|Truncated|RangeError/);
+		assert.throws(
+			() => deserializeIndex(buffer.subarray(0, 10)),
+			/Invalid|Truncated|RangeError/,
+		);
 	});
 
 	test("rejects truncated buffer past hash pool end", () => {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from "commander";
-import { scanDir } from "./src/lib/scanner.js";
+import { scanDirectory } from "./src/lib/scanner.js";
 
 program
 	.name("filedx")
@@ -41,7 +41,7 @@ program
 	.description("test")
 	.action(async (_options) => {
 		const path = process.cwd();
-		await scanDir(path);
+		await scanDirectory(path);
 	});
 
 program.parseAsync();

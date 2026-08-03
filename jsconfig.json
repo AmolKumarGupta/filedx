@@ -17,8 +17,9 @@
         ]
     },
     "include": [
+        "main.js",
         "src/**/*",
-        "main.js"
+        "test/**/*",
     ],
     "exclude": [
         "node_modules",

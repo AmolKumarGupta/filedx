@@ -8,27 +8,27 @@ import safeRegex from "safe-regex2";
  * @param {{rulelist: string[]}} options
  */
 export async function walk(folderPath, options = {}) {
-    const stats = await lstat(folderPath);
-    if (!stats.isDirectory()) {
-        throw new Error(`given path ${folderPath} is not a directory`);
-    }
+	const stats = await lstat(folderPath);
+	if (!stats.isDirectory()) {
+		throw new Error(`given path ${folderPath} is not a directory`);
+	}
 
-    if (stats.isSymbolicLink()) {
-        throw new Error(`given path ${folderPath} is symbolic link`);
-    }
+	if (stats.isSymbolicLink()) {
+		throw new Error(`given path ${folderPath} is symbolic link`);
+	}
 
-    const dirents = await readdir(folderPath, { withFileTypes: true });
-    const allDirects = await validateAndMerge(dirents, {
-        basePath: folderPath,
-        ...options,
-    });
+	const dirents = await readdir(folderPath, { withFileTypes: true });
+	const allDirects = await validateAndMerge(dirents, {
+		basePath: folderPath,
+		...options,
+	});
 
-    const requiredPaths = [];
-    for (const d of allDirects) {
-        const relative = resolvePathViaDirent(d, folderPath);
-        requiredPaths.push(relative);
-    }
-    return requiredPaths;
+	const requiredPaths = [];
+	for (const d of allDirects) {
+		const relative = resolvePathViaDirent(d, folderPath);
+		requiredPaths.push(relative);
+	}
+	return requiredPaths;
 }
 
 /**
@@ -36,10 +36,10 @@ export async function walk(folderPath, options = {}) {
  * @param {{rulelist: string[]}} options
  */
 async function walkDirent(parent, options = {}) {
-    const parentPath = path.join(parent.parentPath, parent.name);
-    const dirents = await readdir(parentPath, { withFileTypes: true });
+	const parentPath = path.join(parent.parentPath, parent.name);
+	const dirents = await readdir(parentPath, { withFileTypes: true });
 
-    return validateAndMerge(dirents, options);
+	return validateAndMerge(dirents, options);
 }
 
 /**
@@ -47,30 +47,30 @@ async function walkDirent(parent, options = {}) {
  * @param {{rulelist: string[], basePath: string}} options
  */
 export async function validateAndMerge(dirents, options = {}) {
-    dirents = dirents
-        .filter((d) => {
-            const relativePath = resolvePathViaDirent(d, options.basePath);
-            return !shouldIgnore(relativePath, options.rulelist);
-        })
-        .filter((d) => !d.isSymbolicLink());
-    dirents.sort((a, b) => a.name.localeCompare(b.name));
+	dirents = dirents
+		.filter((d) => {
+			const relativePath = resolvePathViaDirent(d, options.basePath);
+			return !shouldIgnore(relativePath, options.rulelist);
+		})
+		.filter((d) => !d.isSymbolicLink());
+	dirents.sort((a, b) => a.name.localeCompare(b.name));
 
-    /** @type {Dirent[]} */
-    const flatList = [];
+	/** @type {Dirent[]} */
+	const flatList = [];
 
-    for (const dirent of dirents) {
-        if (dirent.isDirectory()) {
-            const children = await walkDirent(dirent, options);
-            children.forEach((c) => {
-                flatList.push(c);
-            });
-            continue;
-        }
+	for (const dirent of dirents) {
+		if (dirent.isDirectory()) {
+			const children = await walkDirent(dirent, options);
+			children.forEach((c) => {
+				flatList.push(c);
+			});
+			continue;
+		}
 
-        flatList.push(dirent);
-    }
+		flatList.push(dirent);
+	}
 
-    return flatList;
+	return flatList;
 }
 
 /**
@@ -80,55 +80,55 @@ export async function validateAndMerge(dirents, options = {}) {
  * @returns {boolean}
  */
 function shouldIgnore(route, ruleList) {
-    let ignored = false;
+	let ignored = false;
 
-    for (let rule of ruleList) {
-        const origRule = rule;
-        rule = rule.trim();
+	for (let rule of ruleList) {
+		const origRule = rule;
+		rule = rule.trim();
 
-        // Skip empty lines and comments
-        if (rule === "" || rule.startsWith("#")) {
-            continue;
-        }
+		// Skip empty lines and comments
+		if (rule === "" || rule.startsWith("#")) {
+			continue;
+		}
 
-        // Handle negation
-        let isNegation = false;
-        if (rule.startsWith("!")) {
-            isNegation = true;
-            rule = rule.slice(1);
-        }
+		// Handle negation
+		let isNegation = false;
+		if (rule.startsWith("!")) {
+			isNegation = true;
+			rule = rule.slice(1);
+		}
 
-        const isDir = rule.endsWith("/");
-        if (isDir) rule = rule.slice(0, -1);
+		const isDir = rule.endsWith("/");
+		if (isDir) rule = rule.slice(0, -1);
 
-        // Convert gitignore glob pattern to a Regex
-        const regexStr = rule
-            .replace(/\./g, "\\.") // escape dots
-            .replace(/\*\*/g, ".*") // ** matches everything recursively
-            .replace(/\*/g, "[^/]*") // * matches characters within a directory level
-            .replace(/\?/g, "."); // ? matches a single character
+		// Convert gitignore glob pattern to a Regex
+		const regexStr = rule
+			.replace(/\./g, "\\.") // escape dots
+			.replace(/\*\*/g, ".*") // ** matches everything recursively
+			.replace(/\*/g, "[^/]*") // * matches characters within a directory level
+			.replace(/\?/g, "."); // ? matches a single character
 
-        // Anchor to the start of the path
-        const regex = new RegExp(`^${regexStr}$`);
+		// Anchor to the start of the path
+		const regex = new RegExp(`^${regexStr}$`);
 
-        if (!safeRegex(regex)) {
-            throw new Error(`found unsafe ignore pattern: ${origRule}`);
-        }
+		if (!safeRegex(regex)) {
+			throw new Error(`found unsafe ignore pattern: ${origRule}`);
+		}
 
-        if (rule.indexOf("/") < 0) {
-            const baseRoute = path.basename(route)
-            if (regex.test(baseRoute)) {
-                ignored = !isNegation;
-            }
-            continue
-        }
+		if (rule.indexOf("/") < 0) {
+			const baseRoute = path.basename(route);
+			if (regex.test(baseRoute)) {
+				ignored = !isNegation;
+			}
+			continue;
+		}
 
-        if (regex.test(route)) {
-            ignored = !isNegation;
-        }
-    }
+		if (regex.test(route)) {
+			ignored = !isNegation;
+		}
+	}
 
-    return ignored;
+	return ignored;
 }
 
 /**
@@ -136,6 +136,6 @@ function shouldIgnore(route, ruleList) {
  * @param {string} base
  */
 function resolvePathViaDirent(dirent, base) {
-    const fullPath = path.join(dirent.parentPath, dirent.name);
-    return path.relative(base, fullPath);
+	const fullPath = path.join(dirent.parentPath, dirent.name);
+	return path.relative(base, fullPath);
 }
