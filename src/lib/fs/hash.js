@@ -13,7 +13,7 @@ import { createReadStream } from "node:fs";
 export function hashFile(filePath) {
 	return new Promise((resolve, reject) => {
 		const hasher = createHash("sha256");
-		const stream = createReadStream(filePath);
+		const stream = createReadStream(filePath, { flags: "r" });
 
 		stream.on("error", reject);
 		stream.on("data", (chunk) => hasher.update(chunk));
