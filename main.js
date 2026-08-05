@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
+import { createWriteStream } from "node:fs";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { program } from "commander";
+import picocolors from "picocolors";
+import { deserializeIndex, serializeIndex } from "./src/lib/database.js";
+import { isFileExists } from "./src/lib/fs/store.js";
 
 program
 	.name("filedx")
@@ -10,8 +16,45 @@ program
 program
 	.command("init")
 	.description("setup filedx")
-	.action((_options) => {
-		process.stdout.write("init called");
+	.option("-d, --db <DBPATH>", "path of database file", ".filedxdb")
+	.action(async (options) => {
+		const targetDbPath = path.resolve(process.cwd(), options.db);
+
+		const exists = await isFileExists(targetDbPath);
+
+		if (exists) {
+			process.stdout.write(
+				picocolors.greenBright(`file ${targetDbPath} already exists\n`),
+			);
+			process.exit(4);
+			return;
+		}
+
+		const buf = serializeIndex([]);
+
+		await new Promise((resolve, reject) => {
+			const writeStream = createWriteStream(targetDbPath);
+
+			writeStream.on("error", (err) => {
+				writeStream.destroy();
+				reject(err);
+			});
+
+			writeStream.write(buf, (err) => {
+				if (err) {
+					writeStream.destroy();
+					return reject(err);
+				}
+
+				writeStream.end(resolve);
+			});
+		});
+
+		process.stdout.write(
+			picocolors.greenBright(
+				`Successfully initialized database at ${targetDbPath}\n`,
+			),
+		);
 	});
 
 program
@@ -39,9 +82,10 @@ program
 	.command("test")
 	.description("test")
 	.action(async (_options) => {
-		// const path = process.cwd();
-		// const scannedFiles = await scanDirectory(path);
-		// const data = await deserializeIndex(dbBuffer)
+		const loc = path.resolve(".filedxdb");
+		const buf = await readFile(loc);
+		const data = await deserializeIndex(buf);
+		process.stdout.write(JSON.stringify(data));
 	});
 
 program.parseAsync();
