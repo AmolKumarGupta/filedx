@@ -1,0 +1,11 @@
+{
+  "languages": {
+    "JavaScript": {
+      "language_servers": [
+        "!tailwindcss-language-server",
+        "!typescript-language-server",
+        "..."
+      ]
+    }
+  }
+}
