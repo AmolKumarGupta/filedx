@@ -22,8 +22,9 @@ program
 program
 	.command("scan")
 	.description("scan the files and build db")
-	.action((_options) => {
-		process.stdout.write("scan called");
+	.option("-d, --db <DBPATH>", "path of database file", ".filedxdb")
+	.action(async (options) => {
+		await commands.scanCommand(options);
 	});
 
 program

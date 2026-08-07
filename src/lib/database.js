@@ -3,6 +3,8 @@ export const FILE_ENTRY_SIZE = 46;
 export const MAGIC_PREFIX = "FILEDX01";
 export const VERSION = 1;
 
+export const SWAP_DB_NAME = ".filedxdbswap";
+
 /**
  * @typedef {{
  * 	path: string,
@@ -195,5 +197,33 @@ export function deserializeIndex(buffer) {
 			fileCount,
 		},
 		files,
+	};
+}
+
+export function deserializeHeaderOnly(buffer) {
+	const magic = buffer.toString("ascii", 0, 8);
+	if (magic !== MAGIC_PREFIX) {
+		throw new Error("Invalid file format Or Corrupted file");
+	}
+
+	const version = buffer.readUint16BE(8);
+	if (version !== VERSION) {
+		throw new Error("Unsupported version");
+	}
+	const flags = buffer.readUint16BE(10);
+	const fileCount = buffer.readUint32BE(12);
+	const createdAt = Number(buffer.readBigUint64BE(16));
+	const updatedAt = Number(buffer.readBigUint64BE(24));
+	const pathPoolOffset = Number(buffer.readBigUint64BE(40));
+	const hashPoolOffset = Number(buffer.readBigUint64BE(48));
+
+	return {
+		version,
+		flags,
+		createdAt,
+		updatedAt,
+		fileCount,
+		pathPoolOffset,
+		hashPoolOffset,
 	};
 }
