@@ -130,9 +130,9 @@ describe("deserializeIndex", () => {
 	test("rejects truncated buffer past hash pool end", () => {
 		const file = makeFile();
 		const buffer = serializeIndex([file]);
-		const truncated = buffer.subarray(0, buffer.length - 1);
+		const truncated = buffer.subarray(0, buffer.length - 33);
 
-		assert.throws(() => deserializeIndex(truncated), /Truncated/);
+		assert.throws(() => deserializeIndex(truncated), /Truncated file/);
 	});
 
 	test("rejects corrupt path slice pointing past buffer end", () => {
