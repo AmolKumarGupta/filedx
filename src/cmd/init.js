@@ -2,6 +2,7 @@ import path from "node:path";
 import picocolors from "picocolors";
 import { serializeIndex } from "../lib/database.js";
 import { isFileExists, writeBufferToFileDirectly } from "../lib/fs/store.js";
+import { CommandCode } from "./index.js";
 
 /**
  * @param {object} options
@@ -16,7 +17,7 @@ export async function initCommand(options) {
 		process.stdout.write(
 			picocolors.greenBright(`file ${origPath} already exists\n`),
 		);
-		process.exitCode = 4;
+		process.exitCode = CommandCode.INIT_ALREADY_EXISTS;
 		return;
 	}
 

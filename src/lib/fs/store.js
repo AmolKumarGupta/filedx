@@ -1,5 +1,12 @@
 import { createWriteStream } from "node:fs";
-import { access, constants, open, rename, unlink } from "node:fs/promises";
+import {
+	access,
+	constants,
+	open,
+	readFile,
+	rename,
+	unlink,
+} from "node:fs/promises";
 import path from "node:path";
 
 /**
@@ -17,6 +24,13 @@ export async function isFileExists(location) {
 	}
 
 	return result;
+}
+
+/**
+ * @param {string} filePath
+ */
+export async function readBufferFromFile(filePath) {
+	return await readFile(filePath);
 }
 
 /**

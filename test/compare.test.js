@@ -43,7 +43,7 @@ describe("compare", () => {
 			modified: [
 				{
 					file: scannedFile,
-					reason: "hash-mismatch",
+					reason: "content-changed",
 				},
 			],
 			deleted: [],
@@ -135,7 +135,7 @@ describe("compare", () => {
 			modified: [
 				{
 					file: modifiedHashFile,
-					reason: "hash-mismatch",
+					reason: "content-changed",
 				},
 				{
 					file: modifiedPermFile,
@@ -143,7 +143,7 @@ describe("compare", () => {
 				},
 				{
 					file: modifiedGeneralFile,
-					reason: "hash-mismatch",
+					reason: "content-changed",
 				},
 			],
 			deleted: deletedFiles,

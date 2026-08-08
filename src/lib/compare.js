@@ -39,7 +39,7 @@ export function compare(scannedFiles, indexedFiles) {
 		if (!indexedFile.hash.equals(file.hash)) {
 			modified.push({
 				file: file,
-				reason: "hash-mismatch",
+				reason: "content-changed",
 			});
 
 			continue;
