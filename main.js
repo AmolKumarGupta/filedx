@@ -22,7 +22,7 @@ program
 program
 	.command("scan")
 	.description("scan the files and build db")
-	.option("-d, --db <DBPATH>", "path of database file", ".filedxdb")
+	.option("-d, --db <dbpath>", "path of database file", ".filedxdb")
 	.action(async (options) => {
 		await commands.scanCommand(options);
 	});
@@ -30,15 +30,17 @@ program
 program
 	.command("verify")
 	.description("verify the files integrity")
-	.action((_options) => {
-		process.stdout.write("verify called");
+	.option("-d, --db <DBPATH>", "path of database file", ".filedxdb")
+	.action(async (options) => {
+		await commands.verifyCommand(options);
 	});
 
 program
 	.command("diff")
 	.description("display diff")
-	.action((_options) => {
-		process.stdout.write("diff called");
+	.option("-d, --db <DBPATH>", "path of database file", ".filedxdb")
+	.action(async (options) => {
+		await commands.diffCommand(options);
 	});
 
 program

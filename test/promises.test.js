@@ -62,12 +62,12 @@ describe("mapLimit", () => {
 				}),
 			/boom/,
 		);
-  });
+	});
 
-  test("reject when limit is 0", async () => {
-    await assert.rejects(
-      () => mapLimit([1, 2], 0, async (n) => n),
-      /Limit must be a positive number greater than 0/
-    )
-	})
+	test("reject when limit is 0", async () => {
+		await assert.rejects(
+			() => mapLimit([1, 2], 0, async (n) => n),
+			/Limit must be a positive number greater than 0/,
+		);
+	});
 });
