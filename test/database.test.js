@@ -100,6 +100,13 @@ describe("serializeIndex", () => {
 		assert.equal(Number(buffer.readBigUint64BE(24)), bigTime);
 		assert.equal(Number(buffer.readBigUint64BE(HEADER_SIZE + 30)), bigTime);
 	});
+
+	test("checks default permission of file", () => {
+		const file = makeFile({ permissions: 0 });
+		const { files } = deserializeIndex(serializeIndex([file]));
+
+		assert.strictEqual(files[0].permissions, 0o644);
+	});
 });
 
 describe("deserializeIndex", () => {
