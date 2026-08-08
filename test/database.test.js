@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
 import {
+	deserializeHeaderOnly,
 	deserializeIndex,
 	HEADER_SIZE,
 	MAGIC_PREFIX,
@@ -139,18 +140,18 @@ describe("deserializeIndex", () => {
 		const file = makeFile();
 		const buffer = serializeIndex([file]);
 		// path_offset lives at entryOffset (56), force it past buffer end
-		buffer.writeBigUInt64BE(BigInt(buffer.length + 100), HEADER_SIZE);
+		buffer.writeBigUInt64BE(BigInt(buffer.length + 1), HEADER_SIZE);
 
-		assert.throws(() => deserializeIndex(buffer), /Truncated/);
+		assert.throws(() => deserializeIndex(buffer), /Truncated file path at/);
 	});
 
 	test("rejects corrupt hash slice pointing past buffer end", () => {
 		const file = makeFile();
 		const buffer = serializeIndex([file]);
 		// hash_offset lives at entryOffset + 12 (68)
-		buffer.writeBigUInt64BE(BigInt(buffer.length + 100), HEADER_SIZE + 12);
+		buffer.writeBigUInt64BE(BigInt(buffer.length + 1), HEADER_SIZE + 11);
 
-		assert.throws(() => deserializeIndex(buffer), /Truncated/);
+		assert.throws(() => deserializeIndex(buffer), /Truncated file hash at/);
 	});
 
 	test("rejects entry table extending past buffer", () => {
@@ -159,6 +160,53 @@ describe("deserializeIndex", () => {
 		buffer.writeUint32BE(5, 12);
 
 		assert.throws(() => deserializeIndex(buffer), /RangeError/);
+	});
+});
+
+describe("deserializeHeaderOnly", () => {
+	test("rejects bad magic", () => {
+		const buffer = serializeIndex([]);
+		buffer.write("BOGUS01", 0, 8, "ascii");
+
+		assert.throws(
+			() => deserializeHeaderOnly(buffer),
+			/Invalid file format Or Corrupted file/,
+		);
+	});
+
+	test("rejects unsupported version", () => {
+		const buffer = serializeIndex([]);
+		buffer.writeUint16BE(VERSION + 1, 8);
+
+		assert.throws(() => deserializeHeaderOnly(buffer), /Unsupported version/);
+	});
+
+	test("works for zero file entry", () => {
+		const buffer = serializeIndex([], {
+			createdAt: 1,
+			updatedAt: 2,
+		});
+
+		const data = deserializeHeaderOnly(buffer);
+		assert.deepEqual(
+			{
+				version: 1,
+				flags: 0,
+				createdAt: 1,
+				updatedAt: 2,
+				fileCount: 0,
+				pathPoolOffset: HEADER_SIZE,
+				hashPoolOffset: HEADER_SIZE,
+			},
+			data,
+		);
+	});
+
+	test("rejects truncated db", () => {
+		const buffer = serializeIndex([]);
+		const truncated = buffer.subarray(0, HEADER_SIZE - 1);
+
+		assert.throws(() => deserializeHeaderOnly(truncated), /Truncated/);
 	});
 });
 

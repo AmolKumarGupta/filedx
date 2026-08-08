@@ -168,11 +168,11 @@ export function deserializeIndex(buffer) {
 		const flags = buffer.readUInt32BE(entryOffset + 42); // 42..45 Flags
 
 		if (pathOffset + pathLen > buffer.length) {
-			throw new Error(`Truncated file at ${pathOffset + pathLen}`);
+			throw new Error(`Truncated file path at ${pathOffset + pathLen}`);
 		}
 
 		if (hashOffset + hashLen > buffer.length) {
-			throw new Error(`Truncated file at ${hashOffset + hashLen}`);
+			throw new Error(`Truncated file hash at ${hashOffset + hashLen}`);
 		}
 
 		const path = buffer.toString("utf-8", pathOffset, pathOffset + pathLen);
@@ -200,7 +200,14 @@ export function deserializeIndex(buffer) {
 	};
 }
 
+/**
+ * @param {Buffer} buffer
+ */
 export function deserializeHeaderOnly(buffer) {
+	if (buffer.length !== HEADER_SIZE) {
+		throw new Error("Truncated db");
+	}
+
 	const magic = buffer.toString("ascii", 0, 8);
 	if (magic !== MAGIC_PREFIX) {
 		throw new Error("Invalid file format Or Corrupted file");
