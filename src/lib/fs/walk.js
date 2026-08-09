@@ -2,6 +2,7 @@ import { Dirent } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
 import safeRegex from "safe-regex2";
+import { Config } from "../app.js";
 
 /**
  * @param {string} folderPath
@@ -80,6 +81,12 @@ export async function validateAndMerge(dirents, options = {}) {
  * @returns {boolean}
  */
 function shouldIgnore(route, ruleList) {
+	const dbPath = Config.get("dbPath");
+
+	if (typeof dbPath === "string" && dbPath.length > 0 && dbPath === route) {
+		return true;
+	}
+
 	let ignored = false;
 
 	for (let rule of ruleList) {

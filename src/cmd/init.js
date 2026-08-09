@@ -1,5 +1,6 @@
 import path from "node:path";
 import picocolors from "picocolors";
+import { Config } from "../lib/app.js";
 import { serializeIndex } from "../lib/database.js";
 import { isFileExists, writeBufferToFileDirectly } from "../lib/fs/store.js";
 import { CommandCode } from "./index.js";
@@ -8,8 +9,10 @@ import { CommandCode } from "./index.js";
  * @param {object} options
  */
 export async function initCommand(options) {
+	const workingDir = process.cwd();
 	const origPath = options.db;
-	const targetDbPath = path.resolve(process.cwd(), options.db);
+	const targetDbPath = path.resolve(workingDir, options.db);
+	Config.set("dbPath", path.relative(workingDir, targetDbPath));
 
 	const exists = await isFileExists(targetDbPath);
 

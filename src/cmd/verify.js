@@ -1,5 +1,6 @@
 import path from "node:path";
 import picocolors from "picocolors";
+import { Config } from "../lib/app.js";
 import { compare } from "../lib/compare.js";
 import { deserializeIndex } from "../lib/database.js";
 import { isFileExists, readBufferFromFile } from "../lib/fs/store.js";
@@ -10,8 +11,10 @@ import { CommandCode } from "./index.js";
  * @param {{db: string}} options
  */
 export async function verifyCommand(options) {
+	const workingDir = process.cwd();
 	const origPath = options.db;
-	const targetDbPath = path.resolve(process.cwd(), options.db);
+	const targetDbPath = path.resolve(workingDir, options.db);
+	Config.set("dbPath", path.relative(workingDir, targetDbPath));
 
 	const exists = await isFileExists(targetDbPath);
 
@@ -26,7 +29,7 @@ export async function verifyCommand(options) {
 	const dbBuffer = await readBufferFromFile(targetDbPath);
 	const deserialized = deserializeIndex(dbBuffer);
 
-	const files = await scanDirectory(path.dirname(targetDbPath));
+	const files = await scanDirectory(workingDir);
 
 	const comparable = compare(files, deserialized.files);
 

@@ -1,5 +1,6 @@
 import path from "node:path";
 import picocolors from "picocolors";
+import { Config } from "../lib/app.js";
 import {
 	deserializeHeaderOnly,
 	HEADER_SIZE,
@@ -17,8 +18,10 @@ import { scanDirectory } from "../lib/scanner.js";
  * @param {{db: string}} options
  */
 export async function scanCommand(options) {
+	const workingDir = process.cwd();
 	// const origPath = options.db;
-	const targetDbPath = path.resolve(process.cwd(), options.db);
+	const targetDbPath = path.resolve(workingDir, options.db);
+	Config.set("dbPath", path.relative(workingDir, targetDbPath));
 
 	const exists = await isFileExists(targetDbPath);
 	let prevHeader;
@@ -27,7 +30,7 @@ export async function scanCommand(options) {
 		prevHeader = deserializeHeaderOnly(_buf);
 	}
 
-	const files = await scanDirectory(path.dirname(targetDbPath));
+	const files = await scanDirectory(workingDir);
 
 	const serializeOpts = {};
 	if (exists && prevHeader) {
