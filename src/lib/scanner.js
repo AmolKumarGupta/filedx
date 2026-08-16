@@ -22,7 +22,10 @@ export const DEFAULT_CONCURRENCY = 4;
  */
 export async function scanDirectory(root, options = {}) {
 	const rulelist = options.rulelist ?? DEFAULT_IGNORE_RULELIST;
-	const concurrency = options.concurrency ?? DEFAULT_CONCURRENCY;
+	const concurrency = parsedConcurrency(
+		options.concurrency,
+		DEFAULT_CONCURRENCY,
+	);
 
 	const paths = await walk(root, { rulelist });
 
@@ -47,4 +50,12 @@ export async function scanDirectory(root, options = {}) {
 	});
 
 	return files.filter((file) => file !== null);
+}
+
+function parsedConcurrency(value, optional) {
+	const c =
+		typeof value === "number" && value && Number.isInteger(value) && value > 0
+			? value
+			: optional;
+	return Math.min(c, 100);
 }
