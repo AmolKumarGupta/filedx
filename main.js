@@ -9,7 +9,7 @@ import { deserializeIndex } from "./src/lib/database.js";
 program
 	.name("filedx")
 	.description("Cli tool to monitor source code and large asset file integrity")
-	.version("0.0.1");
+	.version("0.1.1");
 
 program
 	.command("init")
