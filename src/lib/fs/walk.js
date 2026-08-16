@@ -20,8 +20,8 @@ export async function walk(folderPath, options = {}) {
 
 	const dirents = await readdir(folderPath, { withFileTypes: true });
 	const allDirects = await validateAndMerge(dirents, {
-		basePath: folderPath,
 		...options,
+		basePath: folderPath,
 	});
 
 	const requiredPaths = [];
@@ -48,6 +48,14 @@ async function walkDirent(parent, options = {}) {
  * @param {{rulelist: string[], basePath: string}} options
  */
 export async function validateAndMerge(dirents, options = {}) {
+	if (!options.basePath) {
+		throw new Error("options.basePath is required");
+	}
+
+	if (!options.rulelist) {
+		throw new Error("options.rulelist is required");
+	}
+
 	dirents = dirents
 		.filter((d) => {
 			const relativePath = resolvePathViaDirent(d, options.basePath);
@@ -90,27 +98,31 @@ function shouldIgnore(route, ruleList) {
 	let ignored = false;
 
 	for (let rule of ruleList) {
+		if (typeof rule !== "string") {
+			continue;
+		}
+
 		const origRule = rule;
-		rule = rule.trim();
+		rule = String.prototype.trim.call(rule);
 
 		// Skip empty lines and comments
-		if (rule === "" || rule.startsWith("#")) {
+		if (rule === "" || String.prototype.startsWith.call(rule, "#")) {
 			continue;
 		}
 
 		// Handle negation
 		let isNegation = false;
-		if (rule.startsWith("!")) {
+		if (String.prototype.startsWith.call(rule, "!")) {
 			isNegation = true;
-			rule = rule.slice(1);
+			rule = String.prototype.slice.call(rule, 1);
 		}
 
-		const isDir = rule.endsWith("/");
-		if (isDir) rule = rule.slice(0, -1);
+		const isDir = String.prototype.endsWith.call(rule, "/");
+		if (isDir) rule = String.prototype.slice.call(rule, 0, -1);
 
 		// Convert gitignore glob pattern to a Regex
-		const regexStr = rule
-			.replace(/\./g, "\\.") // escape dots
+		const regexStr = String.prototype.replace
+			.call(rule, /\./g, "\\.") // escape dots
 			.replace(/\*\*/g, ".*") // ** matches everything recursively
 			.replace(/\*/g, "[^/]*") // * matches characters within a directory level
 			.replace(/\?/g, "."); // ? matches a single character
@@ -122,7 +134,7 @@ function shouldIgnore(route, ruleList) {
 			throw new Error(`found unsafe ignore pattern: ${origRule}`);
 		}
 
-		if (rule.indexOf("/") < 0) {
+		if (String.prototype.indexOf.call(rule, "/") < 0) {
 			const baseRoute = path.basename(route);
 			if (regex.test(baseRoute)) {
 				ignored = !isNegation;

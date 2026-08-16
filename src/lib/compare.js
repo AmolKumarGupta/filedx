@@ -36,7 +36,7 @@ export function compare(scannedFiles, indexedFiles) {
 		}
 
 		// Modified file check
-		if (!indexedFile.hash.equals(file.hash)) {
+		if (!Buffer.prototype.equals.call(indexedFile.hash, file.hash)) {
 			modified.push({
 				file: file,
 				reason: "content-changed",
