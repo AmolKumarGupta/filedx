@@ -1,6 +1,7 @@
 import { diffCommand } from "./diff.js";
 import { initCommand } from "./init.js";
 import { scanCommand } from "./scan.js";
+import { testCommand } from "./test.js";
 import { verifyCommand } from "./verify.js";
 
 export const commands = {
@@ -8,6 +9,7 @@ export const commands = {
 	scanCommand,
 	verifyCommand,
 	diffCommand,
+	testCommand,
 };
 
 export const CommandCode = Object.freeze({

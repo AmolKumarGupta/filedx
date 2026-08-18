@@ -33,17 +33,6 @@ export async function walk(folderPath, options = {}) {
 }
 
 /**
- * @param {Dirent} parent
- * @param {{rulelist: string[]}} options
- */
-async function walkDirent(parent, options = {}) {
-	const parentPath = path.join(parent.parentPath, parent.name);
-	const dirents = await readdir(parentPath, { withFileTypes: true });
-
-	return validateAndMerge(dirents, options);
-}
-
-/**
  * @param {Dirent[]} dirents
  * @param {{rulelist: string[], basePath: string}} options
  */
@@ -56,27 +45,37 @@ export async function validateAndMerge(dirents, options = {}) {
 		throw new Error("options.rulelist is required");
 	}
 
-	dirents = dirents
-		.filter((d) => {
-			const relativePath = resolvePathViaDirent(d, options.basePath);
-			return !shouldIgnore(relativePath, options.rulelist);
-		})
-		.filter((d) => !d.isSymbolicLink());
-	dirents.sort((a, b) => a.name.localeCompare(b.name));
+	/**
+	 * @param {Dirent[]} _dirents
+	 */
+	const filterAndSort = (_dirents) =>
+		_dirents
+			.filter((d) => {
+				const relativePath = resolvePathViaDirent(d, options.basePath);
+				return !shouldIgnore(relativePath, options.rulelist);
+			})
+			.filter((d) => !d.isSymbolicLink())
+			.sort((a, b) => a.name.localeCompare(b.name));
+
+	const filteredDirents = filterAndSort(dirents);
 
 	/** @type {Dirent[]} */
 	const flatList = [];
 
-	for (const dirent of dirents) {
-		if (dirent.isDirectory()) {
-			const children = await walkDirent(dirent, options);
-			children.forEach((c) => {
-				flatList.push(c);
-			});
-			continue;
-		}
+	/** @type {Dirent[]} */
+	const stack = filteredDirents.reverse();
 
-		flatList.push(dirent);
+	while (stack.length) {
+		const dirent = stack.pop();
+
+		if (dirent.isDirectory()) {
+			const fullPath = path.join(dirent.parentPath, dirent.name);
+			const children = await readdir(fullPath, { withFileTypes: true });
+			const filteredChildren = filterAndSort(children);
+			stack.push(...filteredChildren.reverse());
+		} else {
+			flatList.push(dirent);
+		}
 	}
 
 	return flatList;
