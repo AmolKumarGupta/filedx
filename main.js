@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { program } from "commander";
 import { commands } from "./src/cmd/index.js";
-import { deserializeIndex } from "./src/lib/database.js";
 
 program
 	.name("filedx")
@@ -46,11 +43,8 @@ program
 program
 	.command("test")
 	.description("test")
-	.action(async (_options) => {
-		const loc = path.resolve(".filedxdb");
-		const buf = await readFile(loc);
-		const data = await deserializeIndex(buf);
-		process.stdout.write(JSON.stringify(data));
+	.action(async (options) => {
+		await commands.testCommand(options);
 	});
 
 program.parseAsync();
