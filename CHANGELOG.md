@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-19
+
+### Fixed
+- Fixed [RangeError: Maximum call stack size exceeded](https://github.com/AmolKumarGupta/filedx/issues/1)
+
 ## [0.1.1] - 2026-08-16
 
 ### Added

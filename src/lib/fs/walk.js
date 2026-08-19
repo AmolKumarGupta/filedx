@@ -1,4 +1,3 @@
-import { Dirent } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
 import safeRegex from "safe-regex2";
@@ -18,65 +17,46 @@ export async function walk(folderPath, options = {}) {
 		throw new Error(`given path ${folderPath} is symbolic link`);
 	}
 
-	const dirents = await readdir(folderPath, { withFileTypes: true });
-	const allDirects = await validateAndMerge(dirents, {
-		...options,
-		basePath: folderPath,
-	});
-
-	const requiredPaths = [];
-	for (const d of allDirects) {
-		const relative = resolvePathViaDirent(d, folderPath);
-		requiredPaths.push(relative);
-	}
-	return requiredPaths;
+	const result = await validateAndMerge(folderPath, { ...options });
+	return result.sort();
 }
 
 /**
- * @param {Dirent} parent
+ * @param {string} rootFolderPath
  * @param {{rulelist: string[]}} options
  */
-async function walkDirent(parent, options = {}) {
-	const parentPath = path.join(parent.parentPath, parent.name);
-	const dirents = await readdir(parentPath, { withFileTypes: true });
-
-	return validateAndMerge(dirents, options);
-}
-
-/**
- * @param {Dirent[]} dirents
- * @param {{rulelist: string[], basePath: string}} options
- */
-export async function validateAndMerge(dirents, options = {}) {
-	if (!options.basePath) {
-		throw new Error("options.basePath is required");
-	}
-
+export async function validateAndMerge(rootFolderPath, options = {}) {
 	if (!options.rulelist) {
 		throw new Error("options.rulelist is required");
 	}
 
-	dirents = dirents
-		.filter((d) => {
-			const relativePath = resolvePathViaDirent(d, options.basePath);
-			return !shouldIgnore(relativePath, options.rulelist);
-		})
-		.filter((d) => !d.isSymbolicLink());
-	dirents.sort((a, b) => a.name.localeCompare(b.name));
+	const dirents = await readdir(rootFolderPath, { withFileTypes: true });
 
-	/** @type {Dirent[]} */
 	const flatList = [];
+	const stack = dirents;
 
-	for (const dirent of dirents) {
-		if (dirent.isDirectory()) {
-			const children = await walkDirent(dirent, options);
-			children.forEach((c) => {
-				flatList.push(c);
-			});
+	while (stack.length) {
+		const dirent = stack.pop();
+		if (dirent.isSymbolicLink()) {
 			continue;
 		}
 
-		flatList.push(dirent);
+		const fullPath = path.join(dirent.parentPath, dirent.name);
+		const relativePath = path.relative(rootFolderPath, fullPath);
+
+		if (shouldIgnore(relativePath, options.rulelist)) {
+			continue;
+		}
+
+		if (dirent.isDirectory()) {
+			const children = await readdir(fullPath, { withFileTypes: true });
+			// stack.push(...children);
+			for (const child of children) {
+				stack.push(child);
+			}
+		} else {
+			flatList.push(relativePath);
+		}
 	}
 
 	return flatList;
@@ -148,13 +128,4 @@ function shouldIgnore(route, ruleList) {
 	}
 
 	return ignored;
-}
-
-/**
- * @param {Dirent} dirent
- * @param {string} base
- */
-function resolvePathViaDirent(dirent, base) {
-	const fullPath = path.join(dirent.parentPath, dirent.name);
-	return path.relative(base, fullPath);
 }
