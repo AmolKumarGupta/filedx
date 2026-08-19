@@ -1,4 +1,3 @@
-import { Dirent } from "node:fs";
 import { lstat, readdir } from "node:fs/promises";
 import path from "node:path";
 import safeRegex from "safe-regex2";
@@ -18,63 +17,45 @@ export async function walk(folderPath, options = {}) {
 		throw new Error(`given path ${folderPath} is symbolic link`);
 	}
 
-	const dirents = await readdir(folderPath, { withFileTypes: true });
-	const allDirects = await validateAndMerge(dirents, {
-		...options,
-		basePath: folderPath,
-	});
-
-	const requiredPaths = [];
-	for (const d of allDirects) {
-		const relative = resolvePathViaDirent(d, folderPath);
-		requiredPaths.push(relative);
-	}
-	return requiredPaths;
+	const result = await validateAndMerge(folderPath, { ...options });
+	return result.sort();
 }
 
 /**
- * @param {Dirent[]} dirents
- * @param {{rulelist: string[], basePath: string}} options
+ * @param {string} rootFolderPath
+ * @param {{rulelist: string[]}} options
  */
-export async function validateAndMerge(dirents, options = {}) {
-	if (!options.basePath) {
-		throw new Error("options.basePath is required");
-	}
-
+export async function validateAndMerge(rootFolderPath, options = {}) {
 	if (!options.rulelist) {
 		throw new Error("options.rulelist is required");
 	}
 
-	/**
-	 * @param {Dirent[]} _dirents
-	 */
-	const filterAndSort = (_dirents) =>
-		_dirents
-			.filter((d) => {
-				const relativePath = resolvePathViaDirent(d, options.basePath);
-				return !shouldIgnore(relativePath, options.rulelist);
-			})
-			.filter((d) => !d.isSymbolicLink())
-			.sort((a, b) => a.name.localeCompare(b.name));
+	const dirents = await readdir(rootFolderPath, { withFileTypes: true });
 
-	const filteredDirents = filterAndSort(dirents);
-
-	/** @type {Dirent[]} */
 	const flatList = [];
-
-	/** @type {Dirent[]} */
-	const stack = filteredDirents.reverse();
+	const stack = dirents;
 
 	while (stack.length) {
 		const dirent = stack.pop();
+		if (dirent.isSymbolicLink()) {
+			continue;
+		}
+
+		const fullPath = path.join(dirent.parentPath, dirent.name);
+		const relativePath = path.relative(rootFolderPath, fullPath);
+
+		if (shouldIgnore(relativePath, options.rulelist)) {
+			continue;
+		}
 
 		if (dirent.isDirectory()) {
-			const fullPath = path.join(dirent.parentPath, dirent.name);
 			const children = await readdir(fullPath, { withFileTypes: true });
-			const filteredChildren = filterAndSort(children);
-			stack.push(...filteredChildren.reverse());
+			// stack.push(...children);
+			for (const child of children) {
+				stack.push(child);
+			}
 		} else {
-			flatList.push(dirent);
+			flatList.push(relativePath);
 		}
 	}
 
@@ -147,13 +128,4 @@ function shouldIgnore(route, ruleList) {
 	}
 
 	return ignored;
-}
-
-/**
- * @param {Dirent} dirent
- * @param {string} base
- */
-function resolvePathViaDirent(dirent, base) {
-	const fullPath = path.join(dirent.parentPath, dirent.name);
-	return path.relative(base, fullPath);
 }

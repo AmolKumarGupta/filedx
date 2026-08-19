@@ -6,7 +6,7 @@ import { commands } from "./src/cmd/index.js";
 program
 	.name("filedx")
 	.description("Cli tool to monitor source code and large asset file integrity")
-	.version("0.1.1");
+	.version("0.1.2");
 
 program
 	.command("init")

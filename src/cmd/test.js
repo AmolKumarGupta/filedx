@@ -12,6 +12,11 @@ export async function testCommand(_options) {
 
 	const timeFor = performance.now() - startFor;
 
-	process.stdout.write(`Files: ${files.length} ms\n`);
+	process.stdout.write(`Files: ${files.length}\n`);
 	process.stdout.write(`Time: ${timeFor.toFixed(4)} ms\n`);
+
+	//  process.stdout.write(`\n\nFILES:\n\n`)
+	//  for (const file of files) {
+	//    process.stdout.write(`${file}\n`)
+	// }
 }
