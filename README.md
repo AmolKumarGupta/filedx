@@ -12,33 +12,31 @@ Key features:
 - Verify file integrity against the database
 - Display differences between current files and stored hashes
 
-## Installation
-
-```bash
-npm install
-```
-
-Or install globally:
-
-```bash
-npm install -g .
-```
-
 ## Usage
 
 ```bash
-# Initialize the database
-filedx init
+npx filedx scan
+```
+
+```bash
+# Initialize the database (Optional)
+npx filedx init
 
 # Scan files and build the database
-filedx scan
+npx filedx scan
 
 # Verify file integrity
-filedx verify
+npx filedx verify
 
 # Show differences
-filedx diff
+npx filedx diff
 
+```
+
+## Install Globally
+
+```
+npm i -g filedx
 ```
 
 ### Options
@@ -46,5 +44,5 @@ filedx diff
 Each command supports the `-d, --db <DBPATH>` option to specify a custom database file path (default: `.filedxdb`).
 
 ```bash
-filedx scan --db /path/to/custom.db
+npx filedx scan --db /path/to/custom.db
 ```

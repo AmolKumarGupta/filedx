@@ -1,14 +1,40 @@
 {
 	"name": "filedx",
-	"version": "0.1.2",
-	"description": "",
+	"version": "0.1.3",
+	"description": "CLI tool to monitor source code and large asset file integrity",
 	"license": "MIT",
-	"author": "",
+	"author": {
+    "name": "amol kumar gupta",
+    "url": "https://github.com/amolkumargupta"
+  },
+  "homepage": "https://github.com/AmolKumarGupta/filedx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AmolKumarGupta/filedx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AmolKumarGupta/filedx/issues"
+  },
+  "keywords": [
+    "file-integrity",
+    "cli-tool",
+    "security",
+    "hash-verification",
+    "file-monitoring",
+    "asset-integrity",
+    "checksum",
+    "sha256",
+    "devops",
+    "ci-cd"
+  ],
 	"type": "module",
 	"main": "main.js",
 	"bin": {
 		"filedx": "./main.js"
 	},
+	"files": [
+  	"src"
+	],
 	"scripts": {
 		"test": "node --test",
 		"check": "node_modules/.bin/biome check --write"
